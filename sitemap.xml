@@ -13,4 +13,28 @@
     <loc>https://ottawaplated.com/submit.html</loc>
     <priority>0.3</priority>
   </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/miso-black-cod-jfuse.html</loc>
+    <lastmod>2026-10-08</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/c7bbf89a-84be-4861-8d52-43e73f38ee2e-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/berbere-carrots-the-belmont.html</loc>
+    <lastmod>2026-10-08</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/14f8f574-5374-4626-b68c-cab5e3f36174-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/kimchi-pizza-pizza-nerds.html</loc>
+    <lastmod>2026-10-08</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/2e976855-93cc-46f1-9d6f-b4d9c418755c-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/white-chocolate-and-vanilla-bean-panna-cotta-sea-buckthorn-spiced-haze.html</loc>
+    <lastmod>2026-10-08</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/4fe133a4-a6a5-48dd-a97d-1d00a6415963-1600.webp</image:loc></image:image>
+  </url>
 </urlset>
