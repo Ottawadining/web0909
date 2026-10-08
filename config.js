@@ -9,7 +9,7 @@
 export default {
   SITE_URL: 'https://ottawaplated.com',
   SITE_NAME: 'Ottawa Plated',
-  SUPABASE_URL: '',        // e.g. 'https://abcdefghijkl.supabase.co'
-  SUPABASE_ANON_KEY: '',   // Project Settings → API → anon / publishable key
+  SUPABASE_URL: 'https://sxqogesrijgbvdqgqzti.supabase.co',        // e.g. 'https://abcdefghijkl.supabase.co'
+  SUPABASE_ANON_KEY: 'sb_publishable_MWvsjF5YKAR7wVGd30uShQ_gpRVw05T',   // Project Settings → API → anon / publishable key
   PAGE_SIZE: 18,
 };
