@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin — Ottawa Plated</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#f3f0e8">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/assets/admin.css">
+</head>
+<body class="admin">
+<div class="wrap">
+  <header class="site-head">
+    <a class="mark" href="/"><i aria-hidden="true"></i>OTTAWA<b>PLATED</b></a>
+    <nav class="nav" id="adm-nav" hidden>
+      <a href="#collection" data-view="list">Collection</a>
+      <a href="#submissions" data-view="subs">Submissions <span id="sub-count"></span></a>
+      <a href="#" id="signout">Sign out</a>
+    </nav>
+  </header>
+
+  <main id="app">
+    <!-- setup notice -->
+    <section class="adm-view" id="v-setup" hidden>
+      <div class="page" style="padding-top:64px">
+        <p class="cap">Admin</p>
+        <div class="page-body">
+          <h1>Connect Supabase to start publishing.</h1>
+          <div class="prose"><p class="muted">The site is in preview mode. Add <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> to <code>config.js</code> and run <code>supabase/schema.sql</code>. Full steps are in <code>README.md</code>.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- sign in -->
+    <section class="adm-view" id="v-login" hidden>
+      <div class="page" style="padding-top:64px">
+        <p class="cap">Admin</p>
+        <div class="page-body">
+          <h1>Sign in.</h1>
+          <form class="form" id="login-form">
+            <div class="field"><label for="l-email">Email</label><input id="l-email" type="email" autocomplete="username" required></div>
+            <div class="field"><label for="l-pass">Password</label><input id="l-pass" type="password" autocomplete="current-password" required></div>
+            <div class="form-actions"><button class="btn" type="submit">Sign in</button></div>
+            <p class="form-status" id="l-status" role="status"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- collection -->
+    <section class="adm-view" id="v-list" hidden>
+      <div class="adm-bar">
+        <h1 class="adm-h">The Collection <span id="list-count"></span></h1>
+        <div class="adm-actions">
+          <button class="btn btn-quiet" type="button" id="reset-order">Reset to newest first</button>
+          <button class="btn" type="button" id="new-dish">Add a dish</button>
+        </div>
+      </div>
+      <ol class="adm-list" id="list"></ol>
+      <p class="adm-note">Changes appear on the homepage straight away. Dish pages and the sitemap are rebuilt automatically every few hours.</p>
+    </section>
+
+    <!-- editor -->
+    <section class="adm-view" id="v-edit" hidden>
+      <div class="adm-bar">
+        <h1 class="adm-h" id="edit-title">New dish</h1>
+        <div class="adm-actions"><button class="btn btn-quiet" type="button" id="edit-cancel">Cancel</button></div>
+      </div>
+      <form class="adm-editor" id="edit-form" novalidate>
+        <div class="crop">
+          <div class="crop-stage" id="crop-stage" tabindex="0" aria-label="Crop area. Drag or use arrow keys to move; plus and minus to zoom.">
+            <canvas id="crop-canvas"></canvas>
+            <div class="crop-grid" aria-hidden="true"></div>
+            <label class="crop-empty" id="crop-empty" for="photo-input">
+              <span class="cap">Choose a photograph</span><span>or drop it here</span>
+            </label>
+          </div>
+          <div class="crop-tools">
+            <label class="cap" for="zoom">Zoom</label>
+            <input type="range" id="zoom" min="1" max="4" step="0.01" value="1">
+            <label class="btn btn-quiet btn-file">Replace<input type="file" id="photo-input" accept="image/*" hidden></label>
+          </div>
+          <p class="adm-note" id="crop-note">Drag to position. The square is exactly what the gallery shows.</p>
+        </div>
+        <div class="adm-fields">
+          <div class="field"><label for="e-dish">Dish</label><input id="e-dish" type="text" required maxlength="140"></div>
+          <div class="field"><label for="e-rest">Restaurant</label><input id="e-rest" type="text" required maxlength="120"></div>
+          <div class="field"><label for="e-desc">Description<small>Optional, one sentence. <span id="desc-left">300</span> left</small></label><textarea id="e-desc" rows="3" maxlength="300"></textarea></div>
+          <div class="field"><label for="e-link">Instagram or website</label><input id="e-link" type="url" maxlength="300" placeholder="https://www.instagram.com/…"></div>
+          <div class="field"><label for="e-photo">Photographer</label><input id="e-photo" type="text" maxlength="120"></div>
+          <label class="check"><input id="e-pub" type="checkbox"><span>Published — visible in the collection</span></label>
+          <div class="form-actions">
+            <button class="btn" type="submit" id="e-save">Save</button>
+            <button class="btn btn-danger" type="button" id="e-delete" hidden>Delete</button>
+          </div>
+          <p class="form-status" id="e-status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+
+    <!-- submissions -->
+    <section class="adm-view" id="v-subs" hidden>
+      <div class="adm-bar">
+        <h1 class="adm-h">Submissions</h1>
+        <div class="adm-actions">
+          <label class="check" style="padding:0"><input type="checkbox" id="show-all"><span>Show reviewed</span></label>
+        </div>
+      </div>
+      <ol class="adm-list" id="subs"></ol>
+    </section>
+  </main>
+</div>
+<script type="module" src="/assets/admin.js"></script>
+</body>
+</html>

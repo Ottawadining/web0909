@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Submit a dish — Ottawa Plated</title>
+<meta name="description" content="Restaurants and photographers can suggest a beautiful Ottawa dish for the Ottawa Plated collection. Every submission is reviewed before publication.">
+<link rel="canonical" href="https://ottawaplated.com/submit.html">
+<meta name="theme-color" content="#f3f0e8">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ottawa Plated">
+<meta property="og:title" content="Submit a dish — Ottawa Plated">
+<meta property="og:description" content="Suggest a beautiful Ottawa dish for the collection.">
+<meta property="og:url" content="https://ottawaplated.com/submit.html">
+<meta property="og:image" content="https://ottawaplated.com/assets/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="site-head">
+    <a class="mark" href="/" aria-label="Ottawa Plated — home"><i aria-hidden="true"></i>OTTAWA<b>PLATED</b></a>
+    <nav class="nav" aria-label="Primary">
+      <a href="/">The Collection</a>
+      <a href="/about.html">About</a>
+      <a href="/submit.html" aria-current="page">Submit</a>
+    </nav>
+  </header>
+
+  <main class="page" id="main">
+    <p class="cap">Submit a dish</p>
+    <div class="page-body">
+      <h1>Suggest a plate for the collection.</h1>
+      <div class="prose">
+        <p class="muted">For restaurants and photographers. Every submission is reviewed by hand, and nothing is published automatically.</p>
+      </div>
+
+      <form class="form" id="submit-form" novalidate>
+        <div class="field"><label for="f-rest">Restaurant</label><input id="f-rest" name="restaurant" type="text" required maxlength="120" autocomplete="organization"></div>
+        <div class="field"><label for="f-dish">Dish</label><input id="f-dish" name="dish" type="text" required maxlength="140"></div>
+        <div class="field"><label for="f-email">Contact email</label><input id="f-email" name="email" type="email" required maxlength="200" autocomplete="email"></div>
+        <div class="field">
+          <label for="f-ig">Photograph<small>An Instagram post link, or upload the image (JPG, PNG or WebP, max 10 MB).</small></label>
+          <div>
+            <input id="f-ig" name="instagram_url" type="url" maxlength="300" placeholder="https://www.instagram.com/p/…" inputmode="url">
+            <p class="or cap">or</p>
+            <input id="f-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Upload a photograph">
+          </div>
+        </div>
+        <div class="field"><label for="f-credit">Photographer credit</label><input id="f-credit" name="photographer" type="text" required maxlength="120"></div>
+        <div class="hp" aria-hidden="true"><label for="f-web">Website</label><input id="f-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+        <label class="check"><input id="f-perm" name="permission" type="checkbox" required><span>I confirm that I have the right to authorise Ottawa Plated to publish this photograph with credit.</span></label>
+        <div class="form-actions"><button class="btn" type="submit" id="f-send">Send submission</button></div>
+        <p class="form-status" id="f-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </main>
+
+  <footer class="site-foot foot">
+    <p>© Ottawa Plated</p>
+    <p>An ongoing visual collection of beautiful food made in Ottawa.</p>
+    <p><a href="/about.html">About</a><a href="/submit.html">Submit a dish</a></p>
+  </footer>
+</div>
+<script type="module" src="/assets/submit.js"></script>
+</body>
+</html>

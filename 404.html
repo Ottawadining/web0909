@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ottawa Plated</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f0e8">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="site-head">
+    <a class="mark" href="/" aria-label="Ottawa Plated — home"><i aria-hidden="true"></i>OTTAWA<b>PLATED</b></a>
+    <nav class="nav" aria-label="Primary">
+      <a href="/">The Collection</a>
+      <a href="/about.html">About</a>
+      <a href="/submit.html">Submit</a>
+    </nav>
+  </header>
+  <main class="dish-page" id="main">
+    <div id="out" class="page" style="padding-top:0">
+      <p class="cap">Not found</p>
+      <div class="page-body"><h1>This page isn’t in the collection.</h1><div class="prose"><p class="muted"><a href="/">Return to the collection</a></p></div></div>
+    </div>
+  </main>
+  <footer class="site-foot foot">
+    <p>© Ottawa Plated</p>
+    <p>An ongoing visual collection of beautiful food made in Ottawa.</p>
+    <p><a href="/about.html">About</a><a href="/submit.html">Submit a dish</a></p>
+  </footer>
+</div>
+<script type="module">
+// A dish published since the last prerender has no static page yet; render it here.
+import { fetchAll, plateHTML, dishTitle } from '/assets/core.js';
+const m = location.pathname.match(/^\/dish\/([a-z0-9-]+)\.html$/);
+if (m) {
+  const out = document.getElementById('out');
+  out.style.visibility = 'hidden';
+  fetchAll().then((all) => {
+    const i = all.findIndex((d) => d.slug === m[1]);
+    if (i < 0) return;
+    out.className = '';
+    out.innerHTML = `<a class="back cap" href="/">← The Collection</a><article>${plateHTML(all[i], { index: i, total: all.length, prev: all[i - 1], next: all[i + 1] })}</article>`;
+    document.title = dishTitle(all[i]);
+  }).finally(() => { out.style.visibility = ''; });
+}
+</script>
+</body>
+</html>
