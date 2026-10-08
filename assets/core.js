@@ -73,11 +73,17 @@ export function normalize(r) {
   };
 }
 
+/** Request headers for the public key. Legacy anon keys (JWTs) also go in Authorization;
+ *  new sb_publishable_ keys must only be sent as apikey. */
+export function keyHeaders() {
+  const k = CONFIG.SUPABASE_ANON_KEY;
+  return { apikey: k, ...(k.startsWith('eyJ') ? { Authorization: `Bearer ${k}` } : {}) };
+}
+
 async function rest(query, { count = false } = {}) {
   const res = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/dishes?${query}`, {
     headers: {
-      apikey: CONFIG.SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+      ...keyHeaders(),
       ...(count ? { Prefer: 'count=exact' } : {}),
     },
   });

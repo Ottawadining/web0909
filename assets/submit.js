@@ -1,4 +1,4 @@
-import { CONFIG, LIVE } from './core.js';
+import { CONFIG, LIVE, keyHeaders } from './core.js';
 
 const form = document.getElementById('submit-form');
 const status = document.getElementById('f-status');
@@ -32,7 +32,7 @@ form.addEventListener('submit', async (e) => {
   try {
     const res = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/submit-dish`, {
       method: 'POST',
-      headers: { apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}` },
+      headers: keyHeaders(),
       body: fd,
     });
     const out = await res.json().catch(() => ({}));
