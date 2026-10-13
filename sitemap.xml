@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://ottawaplated.com/</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-10-12</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
@@ -12,6 +12,18 @@
   <url>
     <loc>https://ottawaplated.com/submit.html</loc>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/turkish-eggs-wilf-and-ada-s.html</loc>
+    <lastmod>2026-10-12</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/0e66241b-ec37-4961-9c4b-38a1ea1557a7-orig.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/vegetales-de-otono-raphael-peruvian-cuisine.html</loc>
+    <lastmod>2026-10-12</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/9ddf1ecc-92f7-4a33-bcbf-64d33fe48394-orig.jpg</image:loc></image:image>
   </url>
   <url>
     <loc>https://ottawaplated.com/dish/miso-black-cod-jfuse.html</loc>
