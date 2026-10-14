@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://ottawaplated.com/</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
@@ -12,6 +12,18 @@
   <url>
     <loc>https://ottawaplated.com/submit.html</loc>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/seared-scallops-gezellig.html</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/0c0db1c2-5afe-4f79-9665-8e42ecaac7e5-orig.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/surface-tension-atelier.html</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/4ff25267-9253-4d43-ac74-0a9f679ba46a-orig.jpg</image:loc></image:image>
   </url>
   <url>
     <loc>https://ottawaplated.com/dish/turkish-eggs-wilf-and-ada-s.html</loc>
