@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://ottawaplated.com/</loc>
-    <lastmod>2026-10-14</lastmod>
+    <lastmod>2026-10-21</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
@@ -12,6 +12,18 @@
   <url>
     <loc>https://ottawaplated.com/submit.html</loc>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/lemon-ricotta-pancakes-chesterfield-s-gastro-diner.html</loc>
+    <lastmod>2026-10-21</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/df81aace-9945-4a87-b02c-b2034ff186e6-orig.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/black-kale-involtino-gitanes.html</loc>
+    <lastmod>2026-10-21</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/b19554da-7d1e-4856-88ee-4240c9ee76aa-orig.jpg</image:loc></image:image>
   </url>
   <url>
     <loc>https://ottawaplated.com/dish/seared-scallops-gezellig.html</loc>
