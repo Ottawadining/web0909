@@ -6,7 +6,7 @@
 <title>Submit a dish — Ottawa Plated</title>
 <meta name="description" content="Restaurants and photographers can suggest a beautiful Ottawa dish for the Ottawa Plated collection. Every submission is reviewed before publication.">
 <link rel="canonical" href="https://ottawaplated.com/submit.html">
-<meta name="theme-color" content="#f3f0e8">
+<meta name="theme-color" content="#0b0a08">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ottawa Plated">
 <meta property="og:title" content="Submit a dish — Ottawa Plated">
@@ -18,52 +18,59 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/assets/pages.css">
 </head>
 <body>
-<div class="wrap">
-  <header class="site-head">
-    <a class="mark" href="/" aria-label="Ottawa Plated — home"><i aria-hidden="true"></i>OTTAWA<b>PLATED</b></a>
-    <nav class="nav" aria-label="Primary">
-      <a href="/">The Collection</a>
-      <a href="/about.html">About</a>
-      <a href="/submit.html" aria-current="page">Submit</a>
-    </nav>
-  </header>
+<a class="skip" href="#main">Skip to content</a>
+<div class="orb" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
 
-  <main class="page" id="main">
-    <p class="cap">Submit a dish</p>
-    <div class="page-body">
-      <h1>Suggest a plate for the collection.</h1>
-      <div class="prose">
-        <p class="muted">For restaurants and photographers. Every submission is reviewed by hand, and nothing is published automatically.</p>
-      </div>
+<header class="hud">
+  <a class="mark" href="/" aria-label="Ottawa Plated — home">OTTAWA<b>PLATED</b></a>
+  <nav class="nav" aria-label="Primary">
+    <a href="/about.html"><i>01</i>About</a>
+    <a href="/submit.html" aria-current="page"><i>02</i>Submit</a>
+  </nav>
+</header>
 
-      <form class="form" id="submit-form" novalidate>
-        <div class="field"><label for="f-rest">Restaurant</label><input id="f-rest" name="restaurant" type="text" required maxlength="120" autocomplete="organization"></div>
-        <div class="field"><label for="f-dish">Dish</label><input id="f-dish" name="dish" type="text" required maxlength="140"></div>
-        <div class="field"><label for="f-email">Contact email</label><input id="f-email" name="email" type="email" required maxlength="200" autocomplete="email"></div>
-        <div class="field">
-          <label for="f-ig">Photograph<small>An Instagram post link, or upload the image (JPG, PNG or WebP, max 10 MB).</small></label>
-          <div>
-            <input id="f-ig" name="instagram_url" type="url" maxlength="300" placeholder="https://www.instagram.com/p/…" inputmode="url">
-            <p class="or cap">or</p>
-            <input id="f-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Upload a photograph">
-          </div>
+<main class="page" id="main">
+  <p class="cap">Submit a dish</p>
+  <h1 class="title"><span class="ln"><span>Suggest a plate</span></span><span class="ln"><span>for the collection.</span></span></h1>
+  <div class="body">
+    <p class="cap">For restaurants &amp; photographers</p>
+    <form class="form" id="submit-form" novalidate>
+      <p class="lede">Every submission is reviewed by hand, and nothing is published automatically.</p>
+      <div class="field"><label for="f-rest">Restaurant</label><input id="f-rest" name="restaurant" type="text" required maxlength="120" autocomplete="organization"></div>
+      <div class="field"><label for="f-dish">Dish</label><input id="f-dish" name="dish" type="text" required maxlength="140"></div>
+      <div class="field"><label for="f-email">Contact email</label><input id="f-email" name="email" type="email" required maxlength="200" autocomplete="email"></div>
+      <div class="field">
+        <label for="f-ig">Photograph<small>An Instagram post link, or upload the image (JPG, PNG or WebP, max 10 MB).</small></label>
+        <input id="f-ig" name="instagram_url" type="url" maxlength="300" placeholder="https://www.instagram.com/p/…" inputmode="url">
+        <p class="or cap">or</p>
+        <div class="file">
+          <input id="f-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Upload a photograph">
+          <label class="pick" for="f-photo">Choose a photo</label>
+          <span class="name" id="f-photo-name"></span>
         </div>
-        <div class="hp" aria-hidden="true"><label for="f-web">Website</label><input id="f-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-        <div class="form-actions"><button class="btn" type="submit" id="f-send">Send submission</button></div>
-        <p class="form-status" id="f-status" role="status" aria-live="polite"></p>
-      </form>
-    </div>
-  </main>
+      </div>
+      <div class="hp" aria-hidden="true"><label for="f-web">Website</label><input id="f-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+      <div class="form-actions"><button class="send" type="submit" id="f-send">Send submission</button></div>
+      <p class="form-status" id="f-status" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</main>
 
-  <footer class="site-foot foot">
-    <p>© Ottawa Plated</p>
-    <p>An ongoing visual collection of beautiful food made in Ottawa.</p>
-    <p><a href="/about.html">About</a><a href="/submit.html">Submit a dish</a></p>
-  </footer>
-</div>
+<footer class="foot">
+  <p>© Ottawa Plated</p>
+  <p><a href="/">The Collection</a><a href="/about.html">About</a><a href="/submit.html">Submit a dish</a></p>
+</footer>
 <script type="module" src="/assets/submit.js"></script>
+<script>
+  // show the chosen file's name next to the button
+  (function () {
+    var f = document.getElementById('f-photo'), n = document.getElementById('f-photo-name'), form = document.getElementById('submit-form');
+    f.addEventListener('change', function () { n.textContent = f.files[0] ? f.files[0].name : ''; });
+    form.addEventListener('reset', function () { n.textContent = ''; });
+  })();
+</script>
 </body>
 </html>
