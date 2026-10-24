@@ -15,13 +15,12 @@ const countEl = $('count');
 const cursor = $('cursor');
 const curLabel = cursor.querySelector('.cur-label');
 const curProg = cursor.querySelector('.cur-prog');
-const hint = $('hint');
 const rv = $('reveal');
 const rvBody = $('rv-body');
 const rvClose = $('rv-close');
 
 const HOME_TITLE = document.title;
-const HOLD_MS = 650;
+const HOLD_MS = Infinity; // a single tap opens a plate; pressing only lifts it
 const RING = 2 * Math.PI * 26;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -254,7 +253,7 @@ function createWorld() {
     pick, texFor,
     setHover(p) { hovered = p; },
     // dragging spins the globe: a full screen width is about half a turn
-    drag(dx, dy) { poke(); rotT.y += dx / Math.min(W, 900) * Math.PI; rotT.x = clamp(rotT.x + dy / Math.min(H, 900) * Math.PI * .8, -1.25, 1.25); },
+    drag(dx, dy) { poke(); rotT.y += dx / Math.min(W, 900) * Math.PI; rotT.x += dy / Math.min(H, 900) * Math.PI * .8; }, // spins endlessly both ways
     zoom(f) { poke(); zoomRatio = clamp(zoomRatio * f, .18, 1.55); distT = fit * zoomRatio; },
     // turn the globe until this plate faces the viewer
     center(p) {
@@ -264,7 +263,9 @@ function createWorld() {
       let d = (yaw - rotT.y) % (Math.PI * 2);
       if (d > Math.PI) d -= Math.PI * 2; else if (d < -Math.PI) d += Math.PI * 2;
       rotT.y += d;
-      rotT.x = clamp(pitch, -1.25, 1.25);
+      let dp = (pitch - rotT.x) % (Math.PI * 2);
+      if (dp > Math.PI) dp -= Math.PI * 2; else if (dp < -Math.PI) dp += Math.PI * 2;
+      rotT.x += dp;
     },
     intro() { introAt = performance.now(); poke(); },
     refresh() { build(); },
@@ -312,7 +313,7 @@ function bindInput() {
     input.cx = input.rx = e.clientX; input.cy = input.ry = e.clientY;
     root.classList.add('is-dragging');
     const p = world.pick(e.clientX, e.clientY);
-    if (p) { input.holdPlate = p; input.holdAt = performance.now(); cursor.classList.add('is-on', 'is-plate'); curLabel.textContent = 'Hold'; }
+    if (p) { input.holdPlate = p; input.holdAt = performance.now(); cursor.classList.add('is-on', 'is-plate'); curLabel.textContent = 'View'; }
   });
   canvas.addEventListener('pointermove', (e) => {
     input.cx = e.clientX; input.cy = e.clientY;
@@ -329,7 +330,7 @@ function bindInput() {
         world.setHover(p);
         cursor.classList.add('is-on');
         cursor.classList.toggle('is-plate', !!p);
-        curLabel.textContent = p ? 'Hold' : 'Drag';
+        curLabel.textContent = p ? 'View' : 'Drag';
       }
       return;
     }
@@ -347,7 +348,7 @@ function bindInput() {
     input.down = false;
     root.classList.remove('is-dragging');
     if (input.moved > 8 && input.moved < 99) world.drag(input.vx * 140, input.vy * 140); // flick
-    else if (input.holdPlate) { world.center(input.holdPlate); flashHint(); } // tap: turn it to face you
+    else if (input.holdPlate && input.holdPlate.rect) { const pl = input.holdPlate; input.cancelHold(); openPlate(pl.dish, { from: pl.rect }); } // tap: open it
     input.cancelHold();
     if (!fine) cursor.classList.remove('is-plate');
   };
@@ -372,15 +373,6 @@ function bindInput() {
     if (document.hidden) world.pause();
     else if (rv.hidden) world.resume();
   });
-}
-
-const HINT = hint.innerHTML;
-let hintT = 0;
-function flashHint() {
-  hint.classList.add('is-flash');
-  hint.innerHTML = fine ? 'Hold to reveal' : 'Press and hold the plate';
-  clearTimeout(hintT);
-  hintT = setTimeout(() => { hint.classList.remove('is-flash'); hint.innerHTML = HINT; }, 1800);
 }
 
 /* ---------- the revealed plate ---------- */

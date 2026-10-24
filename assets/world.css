@@ -40,7 +40,7 @@ body::after { /* soft vignette over the field */
 .hud > * { pointer-events: auto; }
 .is-entered .hud, .is-static .hud { opacity: 1; }
 .hud-top { top: 0; padding-top: max(var(--pad), env(safe-area-inset-top)); }
-.hud-bottom { bottom: 0; padding-bottom: max(var(--pad), env(safe-area-inset-bottom)); }
+.hud-bottom { bottom: 0; justify-content: flex-end; padding-bottom: max(var(--pad), env(safe-area-inset-bottom)); }
 .mark { font-weight: 500; font-size: 13px; letter-spacing: .14em; }
 .mark b { font-weight: 300; margin-left: .35em; color: var(--mute); }
 .nav { display: flex; gap: clamp(14px, 2.4vw, 32px); font-size: 13px; }
@@ -148,3 +148,9 @@ body::after { /* soft vignette over the field */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; transition-delay: 0s !important; }
 }
+
+/* no instructions on screen: the cursor ring stays, its words go */
+.cur-label { display: none; }
+
+/* the plate count stays in the markup (the GitHub Action rewrites it) but is not shown */
+.hud-bottom { display: none; }
