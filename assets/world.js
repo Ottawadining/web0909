@@ -128,6 +128,44 @@ function createWorld() {
     return e;
   }
 
+  // Hand out dishes so every dish appears equally often and its copies sit as far apart as
+  // possible. (A simple i % n repeats in neat clusters when n lines up with the spiral, e.g. 13.)
+  function spreadDishes(N, n) {
+    const dirs = [];
+    for (let i = 0; i < N; i++) {
+      const y = 1 - 2 * (i + .5) / N, r = Math.sqrt(1 - y * y), th = i * 2.399963;
+      dirs.push([Math.cos(th) * r, y, Math.sin(th) * r]);
+    }
+    const order = [...Array(N).keys()].sort((a, b) => hash(a, 11, 6) - hash(b, 11, 6));
+    const count = new Array(n).fill(0), copies = Array.from({ length: n }, () => []), out = new Array(N);
+    for (const i of order) {
+      const lo = Math.min(...count);
+      let best = -1, bestScore = Infinity;
+      for (let d = 0; d < n; d++) {
+        if (count[d] !== lo) continue;
+        let near = -1; // dot product with this dish's closest copy (1 = same spot, -1 = opposite side)
+        for (const j of copies[d]) { const a = dirs[i], b = dirs[j]; near = Math.max(near, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]); }
+        const score = near + hash(i, d, 8) * 1e-3;
+        if (score < bestScore) { bestScore = score; best = d; }
+      }
+      out[i] = best; count[best]++; copies[best].push(i);
+    }
+    // Polish: swap pairs of plates whenever it pushes same-dish copies further apart.
+    const dot = (i, j) => dirs[i][0] * dirs[j][0] + dirs[i][1] * dirs[j][1] + dirs[i][2] * dirs[j][2];
+    const cost = (i, d, skip) => { let c = 0; for (const j of copies[d]) if (j !== i && j !== skip) c += Math.exp(6 * dot(i, j)); return c; };
+    for (let t = 0; t < 6000; t++) {
+      const a = Math.floor(hash(t, 1, 9) * N), b = Math.floor(hash(t, 2, 9) * N), da = out[a], db = out[b];
+      if (da === db) continue;
+      const before = cost(a, da, b) + cost(b, db, a), after = cost(a, db, b) + cost(b, da, a);
+      if (after < before) {
+        out[a] = db; out[b] = da;
+        copies[da].splice(copies[da].indexOf(a), 1, b);
+        copies[db].splice(copies[db].indexOf(b), 1, a);
+      }
+    }
+    return out;
+  }
+
   // Plates sit on a Fibonacci sphere (evenly spread, no grid), each a little in or out of the shell.
   // With few dishes each one appears several times; repeats land far apart.
   function build() {
@@ -137,6 +175,7 @@ function createWorld() {
     if (!n) { meshes = []; return; }
     const N = n >= 96 ? Math.min(n, 220) : clamp(n * 4, 36, 96);
     const size = RAD * .26 * Math.sqrt(40 / N) * (innerWidth < innerHeight * .8 ? 1.15 : 1);
+    const dishes = spreadDishes(N, n);
     for (let i = 0; i < N; i++) {
       const y = 1 - 2 * (i + .5) / N, r = Math.sqrt(1 - y * y), th = i * 2.399963;
       const rad = RAD * (.8 + hash(i, 7, 1) * .36);
@@ -148,7 +187,7 @@ function createWorld() {
         vertexShader: VS, fragmentShader: FS,
       });
       const m = new THREE.Mesh(geo, mat);
-      const dish = i % n;
+      const dish = dishes[i];
       const p = {
         m, dish, tex: texFor(items[dish]), has: 0, bright: 0, lift: 0, rect: null,
         base: new THREE.Vector3(Math.cos(th) * r * rad, y * rad, Math.sin(th) * r * rad),
