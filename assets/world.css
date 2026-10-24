@@ -104,7 +104,6 @@ body::after { /* soft vignette over the field */
 .tile img { color: transparent; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--out), opacity .6s; }
 .tile img[data-crop] { inset: auto; object-fit: fill; }
 .tile a:hover img { transform: scale(1.04); }
-.tile::after { content: counter(plate, decimal-leading-zero); display: block; margin-top: 8px; font: 10px var(--mono); letter-spacing: .08em; color: var(--mute); }
 .ix-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 48px; padding: 20px 0 max(0px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); font: 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
 .ix-foot a { margin-left: 20px; }
 .ix-foot a:hover { color: var(--ink); }

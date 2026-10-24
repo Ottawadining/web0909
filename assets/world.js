@@ -2,7 +2,7 @@
 // A globe of plates (three.js): drag to spin it, scroll or pinch to fly in, tap a plate to turn it
 // towards you, hold it to reveal the dish and restaurant. A hidden list keeps the collection crawlable.
 import * as THREE from 'three';
-import { fetchAll, esc, pad, linkLabel, fmtDate, dishPath, altText, cropAttrs, dishTitle, tileHTML } from './core.js';
+import { fetchAll, esc, pad, linkLabel, dishPath, altText, cropAttrs, dishTitle, tileHTML } from './core.js';
 
 const root = document.documentElement;
 const $ = (id) => document.getElementById(id);
@@ -418,24 +418,17 @@ function bindInput() {
 const rvState = { i: -1, pushed: false };
 
 function plateMarkup(d, i) {
-  const n = items.length, prev = items[i - 1], next = items[i + 1];
   const link = d.link ? `<div><dt>Website</dt><dd><a href="${esc(d.link)}" rel="noopener" target="_blank">${esc(linkLabel(d.link))} ↗</a></dd></div>` : '';
-  const nav = (p, cls, label) => p
-    ? `<a class="${cls}" href="${dishPath(p)}" data-slug="${esc(p.slug)}">${label}</a>`
-    : `<span class="${cls} is-off">${label}</span>`;
   return `<div class="rv-grid">
     <figure class="rv-photo"><div class="rv-frame"><img src="${esc(d.full)}"${cropAttrs(d)} alt="${esc(altText(d))}" decoding="async"></div></figure>
     <div class="rv-label">
-      <p class="rv-no mono" style="--i:0">No. ${pad(d.no)} <span>/ ${pad(n)}</span></p>
-      <h2 class="rv-dish" style="--i:1">${esc(d.dish)}</h2>
-      <p class="rv-rest" style="--i:2">${esc(d.restaurant)}</p>
-      ${d.description ? `<p class="rv-desc" style="--i:3">${esc(d.description)}</p>` : ''}
-      <dl class="rv-meta" style="--i:4">
+      <h2 class="rv-dish" style="--i:0">${esc(d.dish)}</h2>
+      <p class="rv-rest" style="--i:1">${esc(d.restaurant)}</p>
+      ${d.description ? `<p class="rv-desc" style="--i:2">${esc(d.description)}</p>` : ''}
+      ${d.photographer || link ? `<dl class="rv-meta" style="--i:3">
         ${d.photographer ? `<div><dt>Photograph</dt><dd>${esc(d.photographer)}</dd></div>` : ''}
-        <div><dt>Added</dt><dd><time datetime="${esc(d.date)}">${esc(fmtDate(d.date))}</time></dd></div>
         ${link}
-      </dl>
-      <nav class="rv-nav" style="--i:5" aria-label="Browse the collection">${nav(prev, 'prev', '← Previous')}${nav(next, 'next', 'Next →')}</nav>
+      </dl>` : ''}
     </div>
   </div>`;
 }
@@ -456,7 +449,6 @@ function paint(i, from) {
     requestAnimationFrame(() => { frame.style.transform = ''; });
   }
   requestAnimationFrame(() => rvBody.classList.add('is-in'));
-  [items[i + 1], items[i - 1]].forEach((p) => { if (p) { const im = new Image(); im.src = p.full; } });
 }
 
 function openPlate(i, { from = null, push = true } = {}) {
@@ -490,18 +482,8 @@ function closePlate() {
   else { history.replaceState(null, '', '/'); hidePlate(); }
 }
 
-function step(dir) {
-  const i = rvState.i + dir;
-  if (!items[i]) return;
-  rv.scrollTop = 0;
-  paint(i, null);
-  history.replaceState({ plate: items[i].slug }, '', dishPath(items[i]));
-}
-
 rvClose.addEventListener('click', closePlate);
 rv.addEventListener('click', (e) => {
-  const a = e.target.closest('.rv-nav a');
-  if (a && !e.metaKey && !e.ctrlKey) { e.preventDefault(); step(a.classList.contains('next') ? 1 : -1); return; }
   if (e.target === rvBody || e.target === rv) closePlate();
 });
 addEventListener('popstate', (e) => {
@@ -514,8 +496,6 @@ addEventListener('popstate', (e) => {
 document.addEventListener('keydown', (e) => {
   if (rv.hidden) return;
   if (e.key === 'Escape') { e.preventDefault(); closePlate(); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
-  else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
   else if (e.key === 'Tab') {
     const f = [...rv.querySelectorAll('button, a[href]')].filter((el) => el.offsetParent !== null);
     if (!f.length) return;
@@ -524,14 +504,6 @@ document.addEventListener('keydown', (e) => {
     else if (!e.shiftKey && document.activeElement === lastEl) { e.preventDefault(); first.focus(); }
   }
 });
-let tx = 0, ty = 0;
-rv.addEventListener('touchstart', (e) => { const t = e.changedTouches[0]; tx = t.clientX; ty = t.clientY; }, { passive: true });
-rv.addEventListener('touchend', (e) => {
-  if (!e.target.closest('.rv-photo')) return;
-  const t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty;
-  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
-}, { passive: true });
-
 /* ---------- boot ---------- */
 let world = null;
 
