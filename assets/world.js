@@ -1,6 +1,6 @@
 // Ottawa Plated — the world.
-// A drag-to-explore field of plates (three.js). Tap a plate to bring it to the centre;
-// hold it to reveal the dish and restaurant. The Index view is the plain, crawlable collection.
+// A globe of plates (three.js): drag to spin it, scroll or pinch to fly in, tap a plate to turn it
+// towards you, hold it to reveal the dish and restaurant. A hidden list keeps the collection crawlable.
 import * as THREE from 'three';
 import { fetchAll, esc, pad, linkLabel, fmtDate, dishPath, altText, cropAttrs, dishTitle, tileHTML } from './core.js';
 
@@ -12,9 +12,6 @@ const pctEl = $('ld-pct');
 const enterBtn = $('enter');
 const grid = $('grid');
 const countEl = $('count');
-const indexEl = $('index');
-const indexBtn = $('index-btn');
-const indexClose = $('index-close');
 const cursor = $('cursor');
 const curLabel = cursor.querySelector('.cur-label');
 const curProg = cursor.querySelector('.cur-prog');
@@ -36,7 +33,6 @@ const session = {
 let items = [];
 try { items = JSON.parse($('seed').textContent).items || []; } catch {}
 
-const mod = (n, m) => ((n % m) + m) % m;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const easeOut = (t) => 1 - Math.pow(1 - clamp(t, 0, 1), 4);
@@ -47,22 +43,12 @@ function hash(x, y, s) {
   return (h >>> 0) / 4294967295;
 }
 
-/* ---------- collection (Index view) ---------- */
+/* ---------- hidden collection (search engines, no-WebGL and reduced-motion visitors) ---------- */
 function renderIndex() {
   grid.innerHTML = items.map(tileHTML).join('');
   countEl.textContent = `${items.length} ${items.length === 1 ? 'plate' : 'plates'}`;
 }
 
-function setIndex(open) {
-  if (root.classList.contains('is-static')) open = true;
-  root.classList.toggle('is-index', open);
-  indexBtn.setAttribute('aria-expanded', String(open));
-  if (open) { indexEl.focus({ preventScroll: true }); world?.pause(); }
-  else world?.resume();
-}
-
-indexBtn.addEventListener('click', () => setIndex(!root.classList.contains('is-index')));
-indexClose.addEventListener('click', () => setIndex(false));
 grid.addEventListener('click', (e) => {
   const a = e.target.closest('a[data-slug]');
   if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
@@ -73,14 +59,14 @@ grid.addEventListener('click', (e) => {
   openPlate(i, { from: { x: r.left, y: r.top, w: r.width } });
 });
 
-/* ---------- the world ---------- */
+/* ---------- the world: a globe of plates you spin and fly into ---------- */
 const VS = /* glsl */`
 uniform float uSpeed;
 varying vec2 vUv;
 void main() {
   vUv = uv;
   vec3 p = position;
-  p.z -= sin(uv.x * 3.14159) * sin(uv.y * 3.14159) * uSpeed * 0.16;
+  p.z -= sin(uv.x * 3.14159) * sin(uv.y * 3.14159) * uSpeed * 0.22;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
 }`;
 const FS = /* glsl */`
@@ -93,7 +79,7 @@ varying vec2 vUv;
 void main() {
   vec3 c = texture2D(uMap, uCrop.xy + vUv * uCrop.zw).rgb;
   c = mix(vec3(0.082, 0.075, 0.059), c, uHas) * uBright;
-  c = mix(c, vec3(0.043, 0.039, 0.031), uFog);
+  c = mix(c, vec3(0.055, 0.048, 0.038), uFog);
   gl_FragColor = vec4(c, 1.0);
 }`;
 
@@ -101,8 +87,11 @@ function createWorld() {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setClearColor(0x000000, 0);
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(30, 1, 1, 10000);
-  const geo = new THREE.PlaneGeometry(1, 1, 12, 12);
+  const FOV = 40;
+  const camera = new THREE.PerspectiveCamera(FOV, 1, 1, 40000);
+  const globe = new THREE.Group();
+  scene.add(globe);
+  const geo = new THREE.PlaneGeometry(1, 1, 10, 10);
   const blank = new THREE.DataTexture(new Uint8Array([21, 19, 15, 255]), 1, 1);
   blank.needsUpdate = true;
   const texLoader = new THREE.TextureLoader();
@@ -111,12 +100,15 @@ function createWorld() {
   const textures = new Map();
   const raycaster = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
+  const v = new THREE.Vector3(), vp = new THREE.Vector3(), qBill = new THREE.Quaternion();
+  const tanHalf = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
 
-  let W = 0, H = 0, D = 1, S = 200, CELL = 320, COLS = 0, ROWS = 0, K = 0, R = 1;
-  let slots = [], meshes = [];
-  const off = { x: 0, y: 0 }, target = { x: 0, y: 0 }, vel = { x: 0, y: 0 };
-  let speed = 0, introAt = -1, last = performance.now(), raf = 0, paused = false;
-  let hovered = null, onTexture = () => {};
+  const RAD = 1000;
+  let W = 0, H = 0, fit = 3000, plates = [], meshes = [];
+  const rot = { x: .22, y: 0 }, rotT = { x: .22, y: 0 };
+  let dist = 3000, distT = 3000, zoomRatio = 1;
+  let speed = 0, introAt = -1, idleAt = 0, last = performance.now(), raf = 0, paused = false;
+  let hovered = null;
 
   function texFor(d) {
     let e = textures.get(d.id);
@@ -132,24 +124,46 @@ function createWorld() {
       t.anisotropy = maxAniso;
       t.minFilter = THREE.LinearMipmapLinearFilter;
       t.needsUpdate = true;
-      e.t = t; e.done = true; onTexture();
-    }, undefined, () => { e.done = true; onTexture(); });
+      e.t = t; e.done = true;
+    }, undefined, () => { e.done = true; });
     return e;
   }
 
-  function makeSlot() {
-    const mat = new THREE.ShaderMaterial({
-      uniforms: {
-        uMap: { value: blank }, uCrop: { value: new THREE.Vector4(0, 0, 1, 1) },
-        uHas: { value: 0 }, uBright: { value: .9 }, uFog: { value: 0 }, uSpeed: { value: 0 },
-      },
-      vertexShader: VS, fragmentShader: FS,
-    });
-    const m = new THREE.Mesh(geo, mat);
-    scene.add(m);
-    const s = { m, a: 0, b: 0, cx: NaN, cy: NaN, dish: -1, tex: null, jx: 0, jy: 0, size: S, delay: 0, has: 0, bright: .9, lift: 0, px: 0, py: 0, rect: null };
-    m.userData.slot = s;
-    return s;
+  // Plates sit on a Fibonacci sphere (evenly spread, no grid), each a little in or out of the shell.
+  // With few dishes each one appears several times; repeats land far apart.
+  function build() {
+    plates.forEach((p) => { globe.remove(p.m); p.m.material.dispose(); });
+    plates = [];
+    const n = items.length;
+    if (!n) { meshes = []; return; }
+    const N = n >= 96 ? Math.min(n, 220) : clamp(n * 4, 36, 96);
+    const size = RAD * .26 * Math.sqrt(40 / N) * (innerWidth < innerHeight * .8 ? 1.15 : 1);
+    for (let i = 0; i < N; i++) {
+      const y = 1 - 2 * (i + .5) / N, r = Math.sqrt(1 - y * y), th = i * 2.399963;
+      const rad = RAD * (.8 + hash(i, 7, 1) * .36);
+      const mat = new THREE.ShaderMaterial({
+        uniforms: {
+          uMap: { value: blank }, uCrop: { value: new THREE.Vector4(0, 0, 1, 1) },
+          uHas: { value: 0 }, uBright: { value: 0 }, uFog: { value: 0 }, uSpeed: { value: 0 },
+        },
+        vertexShader: VS, fragmentShader: FS,
+      });
+      const m = new THREE.Mesh(geo, mat);
+      const dish = i % n;
+      const p = {
+        m, dish, tex: texFor(items[dish]), has: 0, bright: 0, lift: 0, rect: null,
+        base: new THREE.Vector3(Math.cos(th) * r * rad, y * rad, Math.sin(th) * r * rad),
+        size: size * (.8 + hash(i, 3, 2) * .45),
+        delay: hash(i, 5, 3),
+        roll: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), (hash(i, 9, 4) - .5) * .22),
+        bob: hash(i, 2, 5) * Math.PI * 2,
+      };
+      m.position.copy(p.base);
+      m.userData.plate = p;
+      globe.add(m);
+      plates.push(p);
+    }
+    meshes = plates.map((p) => p.m);
   }
 
   function layout() {
@@ -157,84 +171,68 @@ function createWorld() {
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     renderer.setSize(W, H, false);
     camera.aspect = W / H;
-    D = (H / 2) / Math.tan(THREE.MathUtils.degToRad(15)); // 1 world unit = 1 CSS px at z = 0
-    camera.position.set(0, 0, D);
-    camera.far = D * 4;
     camera.updateProjectionMatrix();
-    S = clamp(Math.min(W, H) * .34, 120, 330);
-    CELL = S * (W < 700 ? 1.55 : 1.62);
-    R = Math.hypot(W, H) / 2;
-    K = .16 * D / (R * R); // dome: edges sink 16% of the camera distance
-    COLS = Math.ceil(W * 1.4 / CELL) + 2;
-    ROWS = Math.ceil(H * 1.4 / CELL) + 2;
-    const need = COLS * ROWS;
-    while (slots.length < need) slots.push(makeSlot());
-    while (slots.length > need) { const s = slots.pop(); scene.remove(s.m); s.m.material.dispose(); }
-    slots.forEach((s, i) => { s.a = i % COLS; s.b = Math.floor(i / COLS); s.cx = NaN; });
-    meshes = slots.map((s) => s.m);
-  }
-
-  function assign(s, cx, cy) {
-    s.cx = cx; s.cy = cy;
-    const n = items.length;
-    if (!n) { s.dish = -1; s.m.visible = false; return; }
-    s.m.visible = true;
-    s.dish = mod(cx * 3 + cy * 5, n); // neighbours never repeat for n >= 9
-    s.jx = (hash(cx, cy, 1) - .5) * CELL * .24;
-    s.jy = (hash(cx, cy, 2) - .5) * CELL * .24;
-    s.size = S * (.78 + hash(cx, cy, 3) * .4);
-    s.tex = texFor(items[s.dish]);
-    s.has = s.tex.t ? 1 : 0;
-    const u = s.m.material.uniforms;
-    u.uMap.value = s.tex.t || blank;
-    u.uCrop.value.copy(s.tex.crop);
+    // distance at which the globe just fits the narrower side of the screen
+    const half = Math.min(tanHalf, tanHalf * camera.aspect);
+    // phones (portrait) let the globe overflow the sides so plates stay big enough to tap
+    fit = RAD * (camera.aspect < .8 ? .74 : 1.12) / Math.sin(Math.atan(half));
+    distT = fit * zoomRatio;
+    if (introAt < 0) dist = distT;
   }
 
   function frame(now) {
     raf = 0;
     const dt = Math.min((now - last) / 1000, .05); last = now;
-    const k = 1 - Math.exp(-dt * 6.5);
-    const px0 = off.x, py0 = off.y;
-    off.x += (target.x - off.x) * k;
-    off.y += (target.y - off.y) * k;
-    const f60 = dt > 0 ? 1 / (dt * 60) : 1;
-    vel.x = (off.x - px0) * f60; vel.y = (off.y - py0) * f60;
-    speed += (Math.min(Math.hypot(vel.x, vel.y) / 40, 1) - speed) * .12;
-    const GW = COLS * CELL, GH = ROWS * CELL;
+    const k = 1 - Math.exp(-dt * 5);
+    if (!input.down && now - idleAt > 2600) rotT.y += dt * .07; // drift when left alone
+    const y0 = rot.y, x0 = rot.x;
+    rot.x += (rotT.x - rot.x) * k;
+    rot.y += (rotT.y - rot.y) * k;
+    dist += (distT - dist) * (1 - Math.exp(-dt * 4));
+    const av = dt > 0 ? Math.hypot(rot.y - y0, rot.x - x0) / dt : 0;
+    speed += (Math.min(av / 2.2, 1) - speed) * .1;
+
     const t = introAt < 0 ? -1 : (now - introAt) / 1000;
-    const hold = input.holdSlot;
+    const e = t < 0 ? 0 : easeOut(t / 2.2);
+    globe.rotation.set(rot.x, rot.y - (1 - e) * 1.6, 0);
+    globe.scale.setScalar(.55 + .45 * e);
+    camera.position.set(0, 0, dist * (1 + (1 - e) * .9));
+    camera.lookAt(0, 0, 0);
+    camera.updateMatrixWorld();
+    globe.updateMatrixWorld();
+    // billboard: every plate turns to face the viewer, with a slight individual roll
+    qBill.copy(globe.quaternion).invert().multiply(camera.quaternion);
+
+    const hold = input.holdPlate;
     const holdP = hold ? clamp((now - input.holdAt) / HOLD_MS, 0, 1) : 0;
+    const fogAmt = .88 * smooth(.3, .75, dist / fit); // the far side darkens; none once you're inside
 
-    for (const s of slots) {
-      const sx = mod(s.a * CELL + off.x + GW / 2, GW) - GW / 2;
-      const syBase = mod(s.b * CELL + off.y + GH / 2, GH) - GH / 2;
-      const cx = Math.round((sx - off.x) / CELL), cy = Math.round((syBase - off.y) / CELL);
-      if (cx !== s.cx || cy !== s.cy || s.dish < 0) assign(s, cx, cy);
-      if (s.dish < 0) continue;
-      const u = s.m.material.uniforms;
-      if (!s.has && s.tex.t) { u.uMap.value = s.tex.t; u.uCrop.value.copy(s.tex.crop); }
-      s.has += ((s.tex.t ? 1 : 0) - s.has) * .08;
+    for (const p of plates) {
+      const u = p.m.material.uniforms;
+      if (p.tex.t && u.uMap.value !== p.tex.t) { u.uMap.value = p.tex.t; u.uCrop.value.copy(p.tex.crop); }
+      p.has += ((p.tex.t ? 1 : 0) - p.has) * .08;
+      const pe = t < 0 ? 0 : easeOut((t - .2 - p.delay * .9) / 1.1);
+      p.lift += ((p === hold ? .1 + holdP * .18 : p === hovered ? .08 : 0) - p.lift) * .15;
+      const bob = Math.sin(now / 1400 + p.bob) * RAD * .012;
+      p.m.position.set(p.base.x, p.base.y + bob, p.base.z);
+      p.m.quaternion.copy(qBill).multiply(p.roll);
+      const sc = p.size * pe * (1 + p.lift);
+      p.m.scale.set(sc, sc, sc);
 
-      const x = sx + s.jx;
-      const y = syBase + s.jy + (mod(cx, 2) ? CELL * .5 : 0);
-      s.px = x; s.py = y;
-      const z = -K * (x * x + y * y);
-      const r = Math.hypot(x, y) / R;
-      const intro = t < 0 ? 0 : easeOut((t - r * .55) / 1.1);
-      const lifted = s === hovered || s === hold;
-      s.lift += ((s === hold ? .06 + holdP * .1 : lifted ? .05 : 0) - s.lift) * .15;
-      const sc = s.size * (.35 + .65 * intro) * (1 + s.lift);
-      s.m.position.set(x, -y, z - (1 - intro) * D * .5 + s.lift * 60);
-      s.m.rotation.set(Math.atan(K * y) + vel.y * .002, Math.atan(K * x) - vel.x * .002, 0); // half the dome's slope: plates lean, not fall over
-      s.m.scale.set(sc, sc, sc);
-      const want = hold ? (s === hold ? 1.08 : .35 + .5 * (1 - holdP)) : hovered ? (s === hovered ? 1.06 : .55) : .9;
-      s.bright += (want - s.bright) * .12;
-      u.uBright.value = s.bright * intro;
-      u.uHas.value = s.has;
-      u.uFog.value = smooth(.55, 1.25, r) * .92;
+      p.m.getWorldPosition(v);
+      vp.copy(v).applyMatrix4(camera.matrixWorldInverse);
+      const zv = -vp.z;
+      const want = hold ? (p === hold ? 1.08 : .3 + .55 * (1 - holdP)) : hovered ? (p === hovered ? 1.06 : .5) : .92;
+      p.bright += (want - p.bright) * .12;
+      u.uBright.value = p.bright * pe;
+      u.uHas.value = p.has;
+      u.uFog.value = smooth(-RAD * .25, RAD * 1.05, zv - dist) * fogAmt;
       u.uSpeed.value = speed;
-      const pf = D / (D - s.m.position.z);
-      s.rect = { x: W / 2 + x * pf - sc * pf / 2, y: H / 2 + y * pf - sc * pf / 2, w: sc * pf };
+      if (zv > 1) {
+        vp.copy(v).project(camera);
+        const px = sc * globe.scale.x * (H / 2) / (zv * tanHalf);
+        p.rect = { x: (vp.x + 1) / 2 * W - px / 2, y: (1 - vp.y) / 2 * H - px / 2, w: px };
+      } else p.rect = null;
     }
 
     renderer.render(scene, camera);
@@ -246,68 +244,92 @@ function createWorld() {
     ndc.set(clientX / W * 2 - 1, -(clientY / H) * 2 + 1);
     raycaster.setFromCamera(ndc, camera);
     const hit = raycaster.intersectObjects(meshes, false)[0];
-    return hit && hit.object.userData.slot.dish >= 0 ? hit.object.userData.slot : null;
+    return hit ? hit.object.userData.plate : null;
   }
 
+  const poke = () => { idleAt = performance.now(); };
+  build();
   layout();
   return {
     pick, texFor,
-    set onTexture(fn) { onTexture = fn; },
-    setHover(s) { hovered = s; },
-    nudge(dx, dy) { target.x += dx; target.y += dy; },
-    center(s) { target.x -= s.px; target.y -= s.py; },
-    intro() { introAt = performance.now(); },
-    refresh() { slots.forEach((s) => { s.cx = NaN; }); },
+    setHover(p) { hovered = p; },
+    // dragging spins the globe: a full screen width is about half a turn
+    drag(dx, dy) { poke(); rotT.y += dx / Math.min(W, 900) * Math.PI; rotT.x = clamp(rotT.x + dy / Math.min(H, 900) * Math.PI * .8, -1.25, 1.25); },
+    zoom(f) { poke(); zoomRatio = clamp(zoomRatio * f, .18, 1.55); distT = fit * zoomRatio; },
+    // turn the globe until this plate faces the viewer
+    center(p) {
+      poke();
+      const { x, y, z } = p.base;
+      const yaw = Math.atan2(-x, z), pitch = Math.atan2(y, Math.hypot(x, z));
+      let d = (yaw - rotT.y) % (Math.PI * 2);
+      if (d > Math.PI) d -= Math.PI * 2; else if (d < -Math.PI) d += Math.PI * 2;
+      rotT.y += d;
+      rotT.x = clamp(pitch, -1.25, 1.25);
+    },
+    intro() { introAt = performance.now(); poke(); },
+    refresh() { build(); },
     resize() { layout(); },
     pause() { paused = true; if (raf) { cancelAnimationFrame(raf); raf = 0; } },
     resume() { if (!paused && raf) return; paused = false; last = performance.now(); if (!raf) raf = requestAnimationFrame(frame); },
     start() { paused = false; last = performance.now(); raf = requestAnimationFrame(frame); },
-    cell: () => CELL,
   };
 }
 
-/* ---------- input: drag, wheel, tap-to-centre, hold-to-reveal ---------- */
+/* ---------- input: drag to spin, scroll / pinch to zoom, tap to face, hold to reveal ---------- */
 const input = {
-  holdSlot: null, holdAt: 0, down: false, id: null, sx: 0, sy: 0, lx: 0, ly: 0, lt: 0, vx: 0, vy: 0, moved: 0,
+  holdPlate: null, holdAt: 0, down: false, id: null, lx: 0, ly: 0, lt: 0, vx: 0, vy: 0, moved: 0,
   cx: innerWidth / 2, cy: innerHeight / 2, rx: innerWidth / 2, ry: innerHeight / 2,
   tick(now, p) {
-    // eased cursor follow
     this.rx += (this.cx - this.rx) * .25; this.ry += (this.cy - this.ry) * .25;
     cursor.style.transform = `translate3d(${this.rx}px, ${this.ry}px, 0)`;
     curProg.style.strokeDashoffset = String(RING * (1 - p));
-    if (this.holdSlot && p >= 1) {
-      const s = this.holdSlot;
+    if (this.holdPlate && p >= 1) {
+      const pl = this.holdPlate;
       this.cancelHold();
-      const r = s.rect;
-      openPlate(s.dish, { from: r });
+      openPlate(pl.dish, { from: pl.rect });
     }
   },
   cancelHold() {
-    this.holdSlot = null;
+    this.holdPlate = null;
     cursor.classList.toggle('is-on', fine);
     curProg.style.strokeDashoffset = String(RING);
   },
 };
 
 function bindInput() {
+  const pts = new Map();
+  let pinch = 0;
+  const spread = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+
   canvas.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
     canvas.setPointerCapture(e.pointerId);
-    Object.assign(input, { down: true, id: e.pointerId, sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY, lt: performance.now(), vx: 0, vy: 0, moved: 0 });
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 2) { // second finger: pinch, not drag or hold
+      pinch = spread(); input.cancelHold(); input.moved = 99; return;
+    }
+    Object.assign(input, { down: true, id: e.pointerId, lx: e.clientX, ly: e.clientY, lt: performance.now(), vx: 0, vy: 0, moved: 0 });
     input.cx = input.rx = e.clientX; input.cy = input.ry = e.clientY;
     root.classList.add('is-dragging');
-    const s = world.pick(e.clientX, e.clientY);
-    if (s) { input.holdSlot = s; input.holdAt = performance.now(); cursor.classList.add('is-on', 'is-plate'); curLabel.textContent = 'Hold'; }
+    const p = world.pick(e.clientX, e.clientY);
+    if (p) { input.holdPlate = p; input.holdAt = performance.now(); cursor.classList.add('is-on', 'is-plate'); curLabel.textContent = 'Hold'; }
   });
   canvas.addEventListener('pointermove', (e) => {
     input.cx = e.clientX; input.cy = e.clientY;
+    if (pts.has(e.pointerId)) pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 2) {
+      const s = spread();
+      if (pinch > 0 && s > 0) world.zoom(pinch / s);
+      pinch = s;
+      return;
+    }
     if (!input.down || e.pointerId !== input.id) {
       if (fine && !input.down) {
-        const s = world.pick(e.clientX, e.clientY);
-        world.setHover(s);
+        const p = world.pick(e.clientX, e.clientY);
+        world.setHover(p);
         cursor.classList.add('is-on');
-        cursor.classList.toggle('is-plate', !!s);
-        curLabel.textContent = s ? 'Hold' : 'Drag';
+        cursor.classList.toggle('is-plate', !!p);
+        curLabel.textContent = p ? 'Hold' : 'Drag';
       }
       return;
     }
@@ -315,18 +337,17 @@ function bindInput() {
     input.vx = input.vx * .6 + (dx / dt) * .4; input.vy = input.vy * .6 + (dy / dt) * .4;
     input.lx = e.clientX; input.ly = e.clientY; input.lt = now;
     input.moved += Math.abs(dx) + Math.abs(dy);
-    world.nudge(dx, dy);
-    if (input.holdSlot && input.moved > 8) { input.cancelHold(); world.setHover(null); curLabel.textContent = 'Drag'; cursor.classList.remove('is-plate'); }
+    world.drag(dx, dy);
+    if (input.holdPlate && input.moved > 8) { input.cancelHold(); world.setHover(null); curLabel.textContent = 'Drag'; cursor.classList.remove('is-plate'); }
   });
   const up = (e) => {
+    pts.delete(e.pointerId);
+    if (pts.size < 2) pinch = 0;
     if (!input.down || e.pointerId !== input.id) return;
     input.down = false;
     root.classList.remove('is-dragging');
-    if (input.moved > 8) world.nudge(input.vx * 160, input.vy * 160); // flick
-    else if (input.holdSlot) { // a tap: bring the plate to the centre and prompt the hold
-      world.center(input.holdSlot);
-      flashHint();
-    }
+    if (input.moved > 8 && input.moved < 99) world.drag(input.vx * 140, input.vy * 140); // flick
+    else if (input.holdPlate) { world.center(input.holdPlate); flashHint(); } // tap: turn it to face you
     input.cancelHold();
     if (!fine) cursor.classList.remove('is-plate');
   };
@@ -335,28 +356,31 @@ function bindInput() {
   canvas.addEventListener('pointerleave', () => { if (!input.down) { world.setHover(null); cursor.classList.remove('is-on'); } });
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
-    const m = e.deltaMode === 1 ? 32 : 1;
-    world.nudge(-(e.shiftKey ? e.deltaY : e.deltaX) * m, -(e.shiftKey ? 0 : e.deltaY) * m);
+    const d = (e.deltaMode === 1 ? 32 : 1) * (e.ctrlKey ? e.deltaY * 3 : e.deltaY);
+    world.zoom(Math.exp(clamp(d, -120, 120) * .0015));
   }, { passive: false });
   document.addEventListener('keydown', (e) => {
-    if (!root.classList.contains('is-entered') || root.classList.contains('is-index') || !rv.hidden) return;
-    const c = world.cell(), map = { ArrowLeft: [c, 0], ArrowRight: [-c, 0], ArrowUp: [0, c], ArrowDown: [0, -c] };
-    if (map[e.key]) { e.preventDefault(); world.nudge(...map[e.key]); }
+    if (!root.classList.contains('is-entered') || !rv.hidden) return;
+    const map = { ArrowLeft: [-120, 0], ArrowRight: [120, 0], ArrowUp: [0, -90], ArrowDown: [0, 90] };
+    if (map[e.key]) { e.preventDefault(); world.drag(...map[e.key]); }
+    else if (e.key === '+' || e.key === '=') world.zoom(.85);
+    else if (e.key === '-' || e.key === '_') world.zoom(1.18);
   });
   let rt = 0;
   addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => world.resize(), 120); });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) world.pause();
-    else if (rv.hidden && !root.classList.contains('is-index')) world.resume();
+    else if (rv.hidden) world.resume();
   });
 }
 
+const HINT = hint.innerHTML;
 let hintT = 0;
 function flashHint() {
   hint.classList.add('is-flash');
   hint.innerHTML = fine ? 'Hold to reveal' : 'Press and hold the plate';
   clearTimeout(hintT);
-  hintT = setTimeout(() => { hint.classList.remove('is-flash'); hint.innerHTML = '<span class="long">Drag to explore <i>·</i> </span>Hold to reveal'; }, 1800);
+  hintT = setTimeout(() => { hint.classList.remove('is-flash'); hint.innerHTML = HINT; }, 1800);
 }
 
 /* ---------- the revealed plate ---------- */
@@ -425,7 +449,7 @@ function hidePlate() {
   rv.classList.add('is-closing');
   rv.classList.remove('is-open');
   document.title = HOME_TITLE;
-  if (!root.classList.contains('is-index')) world?.resume();
+  world?.resume();
   setTimeout(() => { if (rv.classList.contains('is-closing')) { rv.hidden = true; rv.classList.remove('is-closing'); rvBody.innerHTML = ''; } }, 480);
   rvState.i = -1;
 }
@@ -457,10 +481,7 @@ addEventListener('popstate', (e) => {
   hidePlate();
 });
 document.addEventListener('keydown', (e) => {
-  if (rv.hidden) {
-    if (e.key === 'Escape' && root.classList.contains('is-index') && !root.classList.contains('is-static')) setIndex(false);
-    return;
-  }
+  if (rv.hidden) return;
   if (e.key === 'Escape') { e.preventDefault(); closePlate(); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
@@ -494,7 +515,7 @@ function enter() {
 }
 
 function goStatic() {
-  root.classList.add('is-static', 'is-index');
+  root.classList.add('is-static');
   loaderEl.remove();
   canvas.remove();
 }
@@ -503,7 +524,7 @@ function boot() {
   const want = new URLSearchParams(location.search).get('plate');
   if (reduced || !items.length) { goStatic(); }
   else {
-    try { world = createWorld(); } catch (e) { console.warn('WebGL unavailable, showing the index', e); world = null; goStatic(); }
+    try { world = createWorld(); } catch (e) { console.warn('WebGL unavailable, showing the collection as a grid', e); world = null; goStatic(); }
   }
 
   if (world) {
