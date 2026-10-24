@@ -14,6 +14,12 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://ottawaplated.com/dish/shrimp-toast-ruby-s.html</loc>
+    <lastmod>2026-10-24</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/13b5b984-e0ec-4037-bb50-23253a372c94-orig.png</image:loc></image:image>
+  </url>
+  <url>
     <loc>https://ottawaplated.com/dish/rigatoni-al-pollo-the-grand.html</loc>
     <lastmod>2026-10-24</lastmod>
     <priority>0.7</priority>
