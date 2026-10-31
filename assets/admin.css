@@ -65,3 +65,14 @@
 .sub-row .ctl { display: flex; flex-direction: column; gap: 6px; }
 @media (max-width: 760px) { .sub-row { grid-template-columns: 72px minmax(0, 1fr); } .sub-row img, .sub-row .ph { width: 72px; height: 72px; } .sub-row .ctl { flex-direction: row; flex-wrap: wrap; } }
 .empty { padding: 40px 0; color: var(--ink-3); }
+
+/* city dropdown (Plated cities) */
+.adm-h { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
+.adm-city select, .adm-fields select {
+  font: inherit; color: inherit; background: transparent; border: 0; border-bottom: 1px solid currentColor;
+  padding: 2px 22px 2px 0; border-radius: 0; cursor: pointer; -webkit-appearance: none; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 8px top 55%, right 3px top 55%; background-size: 5px 5px; background-repeat: no-repeat;
+}
+.adm-fields select { width: 100%; padding: 10px 22px 10px 0; font-size: 16px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

@@ -1,6 +1,19 @@
-// Ottawa Plated admin. Uses the public anon key + an admin's signed-in session;
+// Plated admin (every city). Uses the public anon key + an admin's signed-in session;
 // row-level security (supabase/schema.sql) decides what that session may change.
-import { CONFIG, LIVE, esc, pad, fmtDate, storageUrl, dishPath } from './core.js';
+import { CONFIG, LIVE, esc, pad, fmtDate, storageUrl } from './core.js';
+
+// Each city's public address. Add a city here (and in the submit-dish function) when it opens.
+const CITIES = {
+  ottawa: { name: 'Ottawa', base: 'https://ottawaplated.com' },
+  toronto: { name: 'Toronto', base: 'https://plated.gallery/toronto' },
+};
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+let city = CITIES[store.get('plated-admin-city')] ? store.get('plated-admin-city') : 'ottawa';
+const cityName = (c) => CITIES[c]?.name || c;
+const dishUrl = (d) => `${CITIES[d.city]?.base || ''}/dish/${d.slug}.html`;
 
 const $ = (id) => document.getElementById(id);
 const views = ['setup', 'login', 'list', 'edit', 'subs'];
@@ -54,7 +67,7 @@ window.addEventListener('hashchange', route);
 
 /* ================= collection list ================= */
 async function loadList() {
-  const { data, error } = await sb.from('dishes').select('*').order('sort_order').order('published_at', { ascending: false, nullsFirst: true });
+  const { data, error } = await sb.from('dishes').select('*').eq('city', city).order('sort_order').order('published_at', { ascending: false, nullsFirst: true });
   if (error) { alert(error.message); return; }
   dishes = data;
   renderList();
@@ -63,13 +76,13 @@ async function loadList() {
 function renderList() {
   const pub = dishes.filter((d) => d.published).length;
   $('list-count').textContent = `${pub} published · ${dishes.length - pub} draft`;
-  if (!dishes.length) { $('list').innerHTML = '<li class="empty">No dishes yet. Add the first one.</li>'; return; }
+  if (!dishes.length) { $('list').innerHTML = `<li class="empty">No ${esc(cityName(city))} dishes yet. Add the first one.</li>`; return; }
   $('list').innerHTML = dishes.map((d, i) => `
     <li class="adm-row${d.published ? '' : ' is-draft'}" data-id="${d.id}">
       <img src="${esc(storageUrl(d.image_thumb))}" alt="" loading="lazy" width="64" height="64">
       <span class="no">No. ${pad(d.catalog_no)}</span>
       <div class="t"><b>${esc(d.dish_name)}</b><span>${esc(d.restaurant)}</span>
-        <small>${d.published ? `Added ${esc(fmtDate(d.published_at))} · <a href="${dishPath(d)}" target="_blank" rel="noopener">${dishPath(d)}</a>` : 'Draft — not visible'}</small></div>
+        <small>${d.published ? `Added ${esc(fmtDate(d.published_at))} · <a href="${esc(dishUrl(d))}" target="_blank" rel="noopener">View</a>` : 'Draft — not visible'}</small></div>
       <div class="ctl">
         <button class="pill${d.published ? ' on' : ''}" data-act="toggle">${d.published ? 'Published' : 'Draft'}</button>
       </div>
@@ -112,9 +125,16 @@ $('list').addEventListener('click', async (e) => {
   } catch (err) { alert(err.message); } finally { b.disabled = false; }
 });
 
+// The city dropdown: everything on this page (list, new dishes, ordering) follows it.
+const citySel = $('city');
+citySel.innerHTML = Object.entries(CITIES).map(([k, c]) => `<option value="${k}">${esc(c.name)}</option>`).join('');
+citySel.value = city;
+citySel.addEventListener('change', () => { city = citySel.value; store.set('plated-admin-city', city); loadList(); });
+$('e-city').innerHTML = citySel.innerHTML;
+
 $('reset-order').addEventListener('click', async () => {
-  if (!confirm('Reorder the whole collection newest first? Your manual order will be replaced.')) return;
-  const { error } = await sb.rpc('reset_dish_order');
+  if (!confirm(`Reorder the ${cityName(city)} collection newest first? Your manual order will be replaced.`)) return;
+  const { error } = await sb.rpc('reset_dish_order', { p_city: city });
   if (error) return alert(error.message);
   loadList();
 });
@@ -287,6 +307,7 @@ async function openEditor(d, prefill = {}) {
   f.link.value = d?.link_url ?? prefill.link_url ?? '';
   f.photo.value = d?.photographer ?? prefill.photographer ?? '';
   f.pub.checked = d ? d.published : false;
+  $('e-city').value = d?.city ?? prefill.city ?? city;
   $('desc-left').textContent = 300 - f.desc.value.length;
   status('');
   clearCrop();
@@ -335,6 +356,7 @@ $('edit-form').addEventListener('submit', async (e) => {
       link_url: link || null,
       photographer: f.photo.value.trim() || null,
       published: f.pub.checked,
+      city: $('e-city').value,
     };
     const s = cropSize();
     const cropRect = { x: Math.round(crop.cx - s / 2), y: Math.round(crop.cy - s / 2), size: Math.round(s) };
@@ -384,6 +406,7 @@ $('edit-form').addEventListener('submit', async (e) => {
       if (fromSubmission) await sb.from('submissions').update({ status: 'accepted' }).eq('id', fromSubmission.id);
     }
     fromSubmission = null; editing = undefined;
+    if (row.city !== city) { city = row.city; citySel.value = city; store.set('plated-admin-city', city); } // show where it went
     await loadList();
     location.hash = '#collection'; view('list');
   } catch (err) {
@@ -424,7 +447,7 @@ async function loadSubs() {
     <li class="adm-row sub-row" data-id="${s.id}">
       ${s._url ? `<a href="${esc(s._url)}" target="_blank" rel="noopener"><img src="${esc(s._url)}" alt=""></a>` : '<span class="ph">Instagram<br>link</span>'}
       <div class="t">
-        <b>${esc(s.dish_name)}<span class="status">${esc(s.status)}</span></b>
+        <b>${esc(s.dish_name)}<span class="status">${esc(cityName(s.city || 'ottawa'))} · ${esc(s.status)}</span></b>
         <span>${esc(s.restaurant)}${s.photographer ? ` · Photograph: ${esc(s.photographer)}` : ''}</span>
         <small><a href="mailto:${esc(s.email)}">${esc(s.email)}</a> · ${esc(fmtDate(s.created_at))}</small>
         ${s.instagram_url ? `<small><a href="${esc(s.instagram_url)}" target="_blank" rel="noopener">${esc(s.instagram_url)}</a></small>` : ''}
@@ -444,7 +467,7 @@ $('subs').addEventListener('click', async (e) => {
   if (b.dataset.act === 'use') {
     fromSubmission = s;
     // Instagram links are reference only: ask the restaurant for the original file; never scrape.
-    openEditor(null, { dish_name: s.dish_name, restaurant: s.restaurant, photographer: s.photographer, photoUrl: s._url || null });
+    openEditor(null, { dish_name: s.dish_name, restaurant: s.restaurant, photographer: s.photographer, photoUrl: s._url || null, city: s.city || 'ottawa' });
     if (!s._url) status('This submission is an Instagram link. Ask the submitter for the original photograph, then add it here.');
     return;
   }

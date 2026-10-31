@@ -106,11 +106,13 @@ async function rest(query, { count = false } = {}) {
 }
 
 const ORDER = 'order=sort_order.asc,published_at.desc';
+// The database holds every Plated city; this site shows only Ottawa (Toronto lives on plated.gallery).
+const CITY = 'ottawa';
 
 /** Page of published dishes, newest (or admin-ordered) first. */
 export async function fetchPage(offset = 0, limit = CONFIG.PAGE_SIZE) {
   if (!LIVE) return { items: SAMPLES.slice(offset, offset + limit), total: SAMPLES.length };
-  const { rows, total } = await rest(`select=${COLS}&published=eq.true&${ORDER}&offset=${offset}&limit=${limit}`, { count: true });
+  const { rows, total } = await rest(`select=${COLS}&published=eq.true&city=eq.${CITY}&${ORDER}&offset=${offset}&limit=${limit}`, { count: true });
   return { items: rows.map(normalize), total };
 }
 
@@ -119,7 +121,7 @@ export async function fetchAll() {
   if (!LIVE) return SAMPLES.slice();
   const out = [];
   for (let off = 0; ; off += 1000) {
-    const { rows } = await rest(`select=${COLS}&published=eq.true&${ORDER}&offset=${off}&limit=1000`);
+    const { rows } = await rest(`select=${COLS}&published=eq.true&city=eq.${CITY}&${ORDER}&offset=${off}&limit=1000`);
     out.push(...rows.map(normalize));
     if (rows.length < 1000) break;
   }
