@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://ottawaplated.com/</loc>
-    <lastmod>2026-10-24</lastmod>
+    <lastmod>2026-10-31</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
@@ -12,6 +12,96 @@
   <url>
     <loc>https://ottawaplated.com/submit.html</loc>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/fire-dragon-j-unique-kitchen.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/131940f8-3510-4042-8cb7-4f633bb1ac47-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/the-fearless-sandwich-pure-kitchen.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/22f34801-7c87-4c82-9f9e-86c39dd17595-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/chicken-parm-sandwich-gburger.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/ada87a5f-331e-413b-aae0-02c16dcaf44e-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/crab-cakes-pelican-seafood.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/6eddf76c-7806-4a60-b257-170f13cc3861-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/caprese-salad-somewhere-dine-bar.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/c8436eaf-197a-43f9-8444-f31c76a0c95f-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/taco-de-suadero-torta-boyz.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/3bd86a57-c1b9-4d4e-bea6-f61e36c78b65-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/apple-pie-cheesecake-fratelli-kanata.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/e53f3407-4484-4854-8bb1-8b95aeaacb87-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/mahi-mahi-sandwich-the-whalesbone.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/6ac4878d-27eb-49ba-a8d6-9967c3eb3858-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/tartare-the-wellington-gastropub.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/ab913586-6b68-4987-8d4a-568d313ccdce-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/roasted-tomatoes-paper-tiger.html</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/f573b325-81ae-43f8-858c-5d830ef523d3-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/rigatoni-giuliana-trattoria-cafe-italia.html</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/fcfac535-bf99-4ae7-8af4-9ed543860d56-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/croquettes-de-cretons-buvette-daphnee.html</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/ddbcb76d-db69-4a9e-8e09-b4b210ea369c-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/grilled-octopus-evoo-greek-kitchen.html</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/37fbfb56-e0b3-459d-9efc-bd0e2f06add0-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/anelli-di-zucca-retro-gusto.html</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/e4c78345-5874-4515-a397-ce8a837ed365-1600.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://ottawaplated.com/dish/tortellini-vuotti-north-and-navy.html</loc>
+    <lastmod>2026-10-30</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://sxqogesrijgbvdqgqzti.supabase.co/storage/v1/object/public/dishes/2026/4fe292b1-e8cb-443d-922a-d083de4fed2a-1600.webp</image:loc></image:image>
   </url>
   <url>
     <loc>https://ottawaplated.com/dish/shrimp-toast-ruby-s.html</loc>
