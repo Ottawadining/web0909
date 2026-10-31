@@ -1,3 +1,4 @@
+// Submissions go to the Supabase edge function named "dynamic-task" (it holds the submit-dish code).
 import { CONFIG, LIVE, keyHeaders } from './core.js';
 
 const form = document.getElementById('submit-form');
@@ -29,7 +30,7 @@ form.addEventListener('submit', async (e) => {
   if (!hasPhoto) fd.delete('photo');
   send.disabled = true; say('Sending…');
   try {
-    const res = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/submit-dish`, {
+    const res = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/dynamic-task`, {
       method: 'POST',
       headers: keyHeaders(),
       body: fd,
