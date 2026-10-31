@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Admin — Ottawa Plated</title>
+<title>Admin — Plated</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#f3f0e8">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
@@ -16,7 +16,7 @@
 <body class="admin">
 <div class="wrap">
   <header class="site-head">
-    <a class="mark" href="/"><i aria-hidden="true"></i>OTTAWA<b>PLATED</b></a>
+    <a class="mark" href="/"><i aria-hidden="true"></i>PLATED<b>ADMIN</b></a>
     <nav class="nav" id="adm-nav" hidden>
       <a href="#collection" data-view="list">Collection</a>
       <a href="#submissions" data-view="subs">Submissions <span id="sub-count"></span></a>
@@ -55,14 +55,17 @@
     <!-- collection -->
     <section class="adm-view" id="v-list" hidden>
       <div class="adm-bar">
-        <h1 class="adm-h">The Collection <span id="list-count"></span></h1>
+        <h1 class="adm-h">
+          <label class="adm-city"><span class="sr-only">City</span><select id="city" aria-label="City"></select></label>
+          <span id="list-count"></span>
+        </h1>
         <div class="adm-actions">
           <button class="btn btn-quiet" type="button" id="reset-order">Reset to newest first</button>
           <button class="btn" type="button" id="new-dish">Add a dish</button>
         </div>
       </div>
       <ol class="adm-list" id="list"></ol>
-      <p class="adm-note">Changes appear on the homepage straight away. Dish pages and the sitemap are rebuilt automatically every few hours.</p>
+      <p class="adm-note">Changes appear on that city's globe straight away. Dish pages and the sitemap are rebuilt automatically every few hours.</p>
     </section>
 
     <!-- editor -->
@@ -88,6 +91,7 @@
           <p class="adm-note" id="crop-note">Drag to position. The square is exactly what the gallery shows.</p>
         </div>
         <div class="adm-fields">
+          <div class="field"><label for="e-city">City</label><select id="e-city"></select></div>
           <div class="field"><label for="e-dish">Dish</label><input id="e-dish" type="text" required maxlength="140"></div>
           <div class="field"><label for="e-rest">Restaurant</label><input id="e-rest" type="text" required maxlength="120"></div>
           <div class="field"><label for="e-desc">Description<small>Optional, one sentence. <span id="desc-left">300</span> left</small></label><textarea id="e-desc" rows="3" maxlength="300"></textarea></div>
