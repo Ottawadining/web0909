@@ -1,5 +1,2 @@
 User-agent: *
 Allow: /
-Disallow: /admin.html
-
-Sitemap: https://ottawaplated.com/sitemap.xml
