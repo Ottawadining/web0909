@@ -1,12 +1,13 @@
 name: Rebuild dish pages
 
+# ottawaplated.com now forwards to plated.gallery/ottawa; this keeps a forwarding page per dish.
 on:
   schedule:
     - cron: '17 */6 * * *'
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['config.js', 'assets/core.js', 'tools/prerender.mjs']
+    paths: ['config.js', 'assets/core.js', 'tools/prerender.mjs', 'tools/forward.mjs']
 
 permissions:
   contents: write
@@ -26,9 +27,11 @@ jobs:
       - run: node tools/prerender.mjs
       - name: Commit if anything changed
         run: |
-          git add -A dish index.html sitemap.xml
+          git add -A
           if git diff --cached --quiet; then echo "No changes"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Rebuild dish pages"
+          git commit -m "Rebuild forwarding dish pages"
+          # if a file was uploaded while this ran, replay on top of it instead of failing
+          git pull --rebase origin main
           git push
